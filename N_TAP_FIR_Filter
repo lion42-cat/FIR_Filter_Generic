@@ -1,0 +1,108 @@
+`timescale 1ns / 1ps
+`define FIR_tap 16
+// Resource_optimized FIR Filter임 (16_tap FIR Filter) //
+//////////////////////////////////////////////////////////////////////////////////
+module N_TAP_FIR_Filter(clk, rst, data_in, data_out);
+
+input clk, rst;
+input [15:0] data_in;
+output [15:0] data_out;
+
+reg [15:0] xn [`FIR_tap-1:0]; 
+reg [15:0] mac [(`FIR_tap/2):0]; //(원래 7임 더욱 최적화 가능)
+reg [15:0] yn;
+reg [15:0] data_out;
+
+reg [15:0] b[(`FIR_tap/2):0];
+
+integer i;
+
+//coefficient
+always @ (posedge clk)
+begin
+	if(rst == 1)
+		begin
+		for(i=0; i<=(`FIR_tap/2); i=i+1)
+			b[i] = 0;
+		end
+	else
+		begin
+			b[0] = 16'd0001;
+			b[1] = 16'd0002;
+			b[2] = 16'd0003;
+			b[3] = 16'd0004;
+			b[4] = 16'd0005;
+			b[5] = 16'd0006;
+			b[6] = 16'd0007;
+			b[7] = 16'd0008;
+			b[8] = 16'd0009;
+		end
+end
+
+
+integer i;
+//xn
+always @ (posedge clk)
+begin
+	if(rst == 1)
+		begin
+			for(i=0; i<=`FIR_tap; i=i+1)
+					xn[i] = 0;
+		end
+	else
+		begin			
+			for(i=0; i<`FIR_tap; i=i+1)
+				if(i==0)
+						begin
+							xn[0] <= data_in;
+						end
+					else
+						begin
+							xn[i] <= xn[i-1];
+						end
+		end
+end
+
+integer j;
+//mac
+always @ (posedge clk)
+begin
+	if(rst == 1)
+		begin
+			for(i=0; i<=7; i=i+1)
+				mac[i] = 0;
+		end
+	else
+		begin
+			for(j=0; j<=(`FIR_tap/2); j=j+1)
+				mac[j] <= b[j] * (xn[j] + xn[15-j]);
+		end
+end
+
+integer k;
+//yn
+always @ (posedge clk)
+begin
+	if(rst == 1)
+		yn = 0;
+	else
+		begin
+			for(k=0; k<=('FIR_tap/2); k=k+1)
+			yn <= mac[0] + mac[1] + mac[2] + mac[3]+ mac[4]+ mac[5]+ mac[6]+ mac[7];
+		end
+end
+
+//data_out
+always @ (posedge clk)
+begin
+	if(rst == 1)
+		begin
+			data_out[15:0] = 0;
+		end
+	else
+		begin
+			data_out <= yn[15:0];
+		end
+end
+
+endmodule
