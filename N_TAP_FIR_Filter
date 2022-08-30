@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
-`define FIR_tap 15
-`define temporary_FIR_TAP 7   //직접 지정해줘야함!!
+`define FIR_tap 16            //FIR_TAP
+`define temporary_FIR_TAP 7   //직접 계산하여 지정해줘야함
 //FIR_tap이 홀수면 temporary_FIR_TAP <= (`FIR_tap /2)  소숫점 버림;
 //FIR_tap이 짝수면 temporary_FIR_TAP <= ((`FIR_tap /2) - 1);
 
