@@ -1,5 +1,9 @@
 `timescale 1ns / 1ps
 `define FIR_tap 16
+`define temporary_FIR_TAP 7    //직접 지정해줘야함!!
+//FIR_tap이 홀수면 temporary_FIR_TAP <= (`FIR_tap /2);
+//FIR_tap이 짝수면 temporary_FIR_TAP <= ((`FIR_tap /2) - 1);
+
 // Resource_optimized FIR Filter임 (16_tap FIR Filter) //
 //////////////////////////////////////////////////////////////////////////////////
 module N_TAP_FIR_Filter(clk, rst, data_in, data_out);
@@ -9,31 +13,12 @@ input [15:0] data_in;
 output [15:0] data_out;
 
 reg [15:0] xn [`FIR_tap-1:0];
-reg [15:0] prod [(`FIR_tap/2):0];
-reg [15:0] mac [(`FIR_tap/2):0];
+reg [15:0] prod [`temporary_FIR_TAP:0];
+reg [15:0] mac [`temporary_FIR_TAP:0];
 wire [15:0] yn;
 reg [15:0] data_out;
 
 reg [15:0] b[(`FIR_tap/2):0];
-
-integer i;
-
-reg [15:0] temporary_FIR_TAP;
-//MSB for prod,mac //짝수홀수 판별
-always @ (posedge clk)
-begin
-	if(rst == 1)
-		begin
-			temporary_FIR_TAP <= 0;
-		end
-	else
-		begin
-			if((`FIR_tap & 1) == 1) //Tap이 홀수
-				temporary_FIR_TAP <= (`FIR_tap /2);
-			else					//Tap이 짝수
-				temporary_FIR_TAP <= ((`FIR_tap /2) - 1);
-		end
-end
 
 //coefficient
 always @ (posedge clk)
@@ -87,22 +72,22 @@ always @ (posedge clk)
 begin
 	if(rst == 1)
 		begin
-			for(i=0; i<=temporary_FIR_TAP; i=i+1)
+			for(i=0; i<=`temporary_FIR_TAP; i=i+1)
 				prod[i] = 0;
 		end
 	else
 		begin
 			if((`FIR_tap & 1) == 1) //FIR_tap이 홀수
 				begin
-					for(j=0; j<=temporary_FIR_TAP-1; j=j+1)
+					for(j=0; j<=`temporary_FIR_TAP-1; j=j+1)
 						begin
 							prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 -j]);
 						end
-					prod[(temporary_FIR_TAP/2)+1] <= b[temporary_FIR_TAP/2+1] * xn[temporary_FIR_TAP/2];
+					prod[(`temporary_FIR_TAP/2)+1] <= b[`temporary_FIR_TAP/2+1] * xn[`temporary_FIR_TAP/2];
 				end
 			else					//FIR_tap이 짝수
 				begin
-					for(j=0; j<=temporary_FIR_TAP; j=j+1)
+					for(j=0; j<=`temporary_FIR_TAP; j=j+1)
 						prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 - j]);
 				end
 		end
@@ -114,13 +99,13 @@ always @ (posedge clk)
 begin
 	if(rst == 1)
 		begin
-			for(k=0; k<=temporary_FIR_TAP; k=k+1)
+			for(k=0; k<=`temporary_FIR_TAP; k=k+1)
 				mac[k] = 0;
 		end
 	else
 		begin
 		mac[0] = prod[0];
-			for(k=1; k<=temporary_FIR_TAP; k=k+1)
+			for(k=1; k<=`temporary_FIR_TAP; k=k+1)
 				mac[k] = mac[k-1] + prod[k]; 
 		end
 end
