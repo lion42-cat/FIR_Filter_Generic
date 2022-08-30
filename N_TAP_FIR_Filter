@@ -69,7 +69,7 @@ begin
 		end
 	else
 		begin			
-			for(i=0; i<(`FIR_tap-1); i=i+1)
+			for(i=0; i<=(`FIR_tap-1); i=i+1)
 				if(i==0)
 						begin
 							xn[0] <= data_in;
@@ -92,15 +92,15 @@ begin
 		end
 	else
 		begin
-			if((`FIR_tap & 1) == 1) //Tap이 홀수
+			if((`FIR_tap & 1) == 1) //FIR_tap이 홀수
 				begin
 					for(j=0; j<=temporary_FIR_TAP-1; j=j+1)
-					begin
-						prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 -j]);
-					end
+						begin
+							prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 -j]);
+						end
 					prod[(temporary_FIR_TAP/2)+1] <= b[temporary_FIR_TAP/2+1] * xn[temporary_FIR_TAP/2];
 				end
-			else					//Tap이 짝수
+			else					//FIR_tap이 짝수
 				begin
 					for(j=0; j<=temporary_FIR_TAP; j=j+1)
 						prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 - j]);
