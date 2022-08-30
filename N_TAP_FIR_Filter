@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 `define FIR_tap 15
-`define temporary_FIR_TAP 7    //직접 지정해줘야함!!
+`define temporary_FIR_TAP 7   //직접 지정해줘야함!!
 //FIR_tap이 홀수면 temporary_FIR_TAP <= (`FIR_tap /2)  소숫점 버림;
 //FIR_tap이 짝수면 temporary_FIR_TAP <= ((`FIR_tap /2) - 1);
 
@@ -79,11 +79,13 @@ begin
 		begin
 			if((`FIR_tap & 1) == 1) //FIR_tap이 홀수
 				begin
-					for(j=0; j<=`temporary_FIR_TAP-1; j=j+1)
+					for(j=0; j<=`temporary_FIR_TAP; j=j+1)
 						begin
-							prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 -j]);
+							if(j<=(`temporary_FIR_TAP-1))
+								prod[j] <= b[j] * (xn[j] + xn[`FIR_tap - 1 -j]); //FIR_tap= 5
+							else
+								prod[`temporary_FIR_TAP] <= b[`temporary_FIR_TAP] * xn[`temporary_FIR_TAP];
 						end
-					prod[(`temporary_FIR_TAP/2)+1] <= b[`temporary_FIR_TAP/2+1] * xn[`temporary_FIR_TAP/2];
 				end
 			else					//FIR_tap이 짝수
 				begin
