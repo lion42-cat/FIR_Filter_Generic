@@ -9,8 +9,8 @@ input [15:0] data_in;
 output [15:0] data_out;
 
 reg [15:0] xn [`FIR_tap-1:0]; 
-reg [15:0] mac [(`FIR_tap/2):0]; //(원래 7임 더욱 최적화 가능)
-reg [15:0] yn;
+reg [15:0] mac [7:0]; //(원래 7임 더욱 최적화 가능)
+wire [15:0] yn;
 reg [15:0] data_out;
 
 reg [15:0] b[(`FIR_tap/2):0];
@@ -64,32 +64,46 @@ begin
 end
 
 integer j;
-//mac
+reg [15:0] prod [7:0]; //(원래 7임 더욱 최적화 가능)
+//prod
 always @ (posedge clk)
 begin
 	if(rst == 1)
 		begin
 			for(i=0; i<=7; i=i+1)
-				mac[i] = 0;
+				prod[i] = 0;
 		end
 	else
 		begin
-			for(j=0; j<=(`FIR_tap/2); j=j+1)
-				mac[j] <= b[j] * (xn[j] + xn[15-j]);
+			for(j=0; j<=7; j=j+1)
+				prod[j] <= b[j] * (xn[j] + xn[15-j]);
 		end
 end
 
 integer k;
-//yn
+//mac
 always @ (posedge clk)
 begin
 	if(rst == 1)
-		yn = 0;
+		begin
+			for(k=0; k<=7; k=k+1)
+				mac[k] = 0;
+		end
 	else
 		begin
-			yn <= mac[0] + mac[1] + mac[2] + mac[3]+ mac[4]+ mac[5]+ mac[6]+ mac[7];
+		mac[0] = prod[0];
+		mac[1] = mac[0] + prod[1];
+		mac[2] = mac[1] + prod[2];
+		mac[3] = mac[2] + prod[3];
+		mac[4] = mac[3] + prod[4];
+		mac[5] = mac[4] + prod[5];
+		mac[6] = mac[5] + prod[6];
+		mac[7] = mac[6] + prod[7];
 		end
 end
+
+assign yn = mac[7];
+
 
 //data_out
 always @ (posedge clk)
